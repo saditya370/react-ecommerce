@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useCart } from '../context/CartContext';
 
 function ProductShow() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [added, setAdded] = useState(false);
+  const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
     axios.get(`https://fakestoreapi.com/products/${id}`)
       .then(res => setProduct(res.data))
       .catch(err => console.error(err));
   }, [id]);
+
+  const handleAdd = async () => {
+    await addToCart(product.id);
+    setAdded(true);
+  };
+
+  const inCart = cartItems.some(item => item.productId === Number(id));
 
   if (!product) return <div className="container my-5"><p>Loading...</p></div>;
 
@@ -28,7 +38,12 @@ function ProductShow() {
               <p className="card-text text-muted mt-2">{product.description}</p>
               <h4 className="text-success mt-3">${product.price}</h4>
               <p className="text-secondary mt-2">Category: <strong>{product.category}</strong></p>
-              <button className="btn btn-success mt-4">Add to Cart</button>
+
+              {!inCart && !added ? (
+                <button className="btn btn-success mt-4" onClick={handleAdd}>Add to Cart</button>
+              ) : (
+                <Link to="/cart" className="btn btn-outline-success mt-4">Go to Cart</Link>
+              )}
             </div>
           </div>
         </div>
